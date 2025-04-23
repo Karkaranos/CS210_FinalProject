@@ -1,14 +1,14 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <sstream>>
+#include <sstream>
 #include <unordered_map>
 using namespace std;
 class CSVReader {
 private:
-    static string fileName;
+     string fileName;
     public:
-    static bool openFile(const string& filename) {
+     bool openFile(const string& filename) {
         fileName = filename;
          ifstream file(filename);
 
@@ -18,7 +18,7 @@ private:
         }
         return true;
     }
-    static vector<string> readEntry(const string& filename, string countryCode, string city) {
+    vector<string> readEntry(const string& filename, string countryCode, string city) {
         if (!openFile(filename)) {
             return vector<string>();
         }
@@ -79,7 +79,6 @@ public:
                 }
                 entry.first = 1;
                 recent[(newEntry[0]+newEntry[1])] = entry;
-                cout << "Entry updated";
                 return;
             }
 
@@ -88,15 +87,24 @@ public:
 
         //Make space for it
         for (auto entry : recent) {
-            entry.second.first++;
-            if (entry.second.first > 9) {
+            if (entry.second.first >= 9) {
                 recent.erase(entry.first);
             }
+            recent[entry.second.second[0]+entry.second.second[1]] = make_pair((entry.second.first+1), entry.second.second);
         }
 
         recent.insert(make_pair((newEntry[0]+newEntry[1]), make_pair(1, newEntry)));
-        cout << "New entry added";
 
+    }
+
+    void view() {
+        for (auto entry : recent) {
+            cout << entry.second.first << " ";
+            for (int i=0; i<3;i++) {
+                cout << entry.second.second[i] << " ";
+            }
+            cout << endl;
+        }
     }
 
 };
@@ -111,22 +119,39 @@ void DisplayAndUpdate(vector<string> city, Cache& cache)
 
 int main() {
     CSVReader reader;
-    string file = 
+    string file = "world_cities.csv";
     Cache cache;
     string end = "~";
-    string in = "";
+    string in = " ";
     string code, city;
     while (in != end) {
         cout << "To terminate program, type ~" << endl;
         cout << "Enter country code: ";
         cin >> in;
+        if (in==end) {
+            break;
+        }
+        cin.ignore(100,'\n');
+        cin.clear();
         code = in;
         cout << "Enter city name: ";
         cin >> in;
+        if (in==end) {
+            break;
+        }
+        cin.ignore(100,'\n');
+        cin.clear();
         city = in;
 
         vector<string> result = reader.readEntry(file, code, city);
+        if (result.size()>0) {
+            DisplayAndUpdate(result, cache);
+        }
+        else {
+            cout << city << " not found." << endl;
+        }
 
+        cache.view();
     }
     return 0;
 }
