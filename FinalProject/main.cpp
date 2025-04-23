@@ -61,9 +61,32 @@ public:
         }
         return false;
     }
+
+    void removeOldest(bool found, unordered_map<string,int> visited) {
+        vector<pair<string, int>> newPos;
+        for (auto entry : recent) {
+            if (visited.find(entry.first)!=visited.end()) {
+                continue;
+            }
+            if (!found && entry.second.first > 9) {
+                recent.erase(entry.first);
+                return;
+            }
+            visited[entry.first] = entry.second.first+1;
+        }
+    }
     void enqueue(vector<string> newEntry) {
+        //Make space for it and adjust positions
+        unordered_map<string,int> newPos;
+        bool found = findEntry(newEntry[0], newEntry[1]);
+        removeOldest(found, newPos);
+        for (auto entry : recent)
+        {
+            recent[entry.first] = make_pair(entry.second.first+1, entry.second.second);
+
+        }
         //If the entry is already stashed in the cache
-        if (findEntry(newEntry[0], newEntry[1])) {
+        if (found) {
             //Entry already exists; adjust its position
             auto entry = recent[(newEntry[0]+newEntry[1])];
             int lastIndex = entry.first;
@@ -83,16 +106,8 @@ public:
             }
 
         }
-        //If the entry is new
 
-        //Make space for it
-        for (auto entry : recent) {
-            if (entry.second.first >= 9) {
-                recent.erase(entry.first);
-            }
-            recent[entry.second.second[0]+entry.second.second[1]] = make_pair((entry.second.first+1), entry.second.second);
-        }
-
+        //Add the new city
         recent.insert(make_pair((newEntry[0]+newEntry[1]), make_pair(1, newEntry)));
 
     }
@@ -127,20 +142,16 @@ int main() {
     while (in != end) {
         cout << "To terminate program, type ~" << endl;
         cout << "Enter country code: ";
-        cin >> in;
+        getline(cin, in, '\n');
         if (in==end) {
             break;
         }
-        cin.ignore(100,'\n');
-        cin.clear();
         code = in;
         cout << "Enter city name: ";
-        cin >> in;
+        getline(cin, in, '\n');
         if (in==end) {
             break;
         }
-        cin.ignore(100,'\n');
-        cin.clear();
         city = in;
 
         vector<string> result = reader.readEntry(file, code, city);
