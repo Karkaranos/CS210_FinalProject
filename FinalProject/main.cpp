@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <queue>
 using namespace std;
 class CSVReader {
 private:
@@ -91,7 +92,7 @@ public:
     }
     void addToCache(vector<string> newEntry)  {
         //Make space for it and adjust positions
-        if (recent.size() > 2) {
+        if (recent.size() > 10) {
             remove();
         }
         bool found = findEntry(newEntry[0], newEntry[1]);
@@ -127,10 +128,91 @@ public:
 };
 
 
+class FIFOCache {
+public:
+    FIFOCache() {
+        recent.empty();
+    }
+    queue<pair<string, vector<string>>>recent;
+
+    bool findEntry(string countryCode, string cityCode)  {
+        bool result = false;
+        string key = countryCode + cityCode;
+        //  Duplicating the queue so the order is not changed
+        queue<pair<string, vector<string>>> copy = recent;
+        for (int i=0; i<recent.size(); i++) {
+            auto temp = copy.front();
+            if (temp.first == key) {
+                result = true;
+            }
+            copy.pop();
+            copy.push(temp);
+        }
+        return result;
+    }
+
+    void remove()  {
+        recent.pop();
+    }
+    void addToCache(vector<string> newEntry)  {
+        //Make space for it and adjust positions
+        if (recent.size() > 10) {
+            remove();
+        }
+        bool found = findEntry(newEntry[0], newEntry[1]);
+        //If the entry is already stashed in the cache
+        if (found) {
+            cout << "Size: " << recent.size() << endl;
+            pair<string, vector<string>> saved;
+            queue<pair<string, vector<string>>> helper;
+            while (!recent.empty()) {
+                auto temp = recent.front();
+                if (temp.first == newEntry[0]+newEntry[1]) {
+                    saved = recent.front();
+                    recent.pop();
+                    continue;
+                }
+                recent.pop();
+                helper.push(temp);
+            }
+            while (!helper.empty()) {
+                recent.push(helper.front());
+                helper.pop();
+            }
+            recent.push(saved);
+            return;
+        }
+
+        //Add the new city
+        recent.push(make_pair((newEntry[0]+newEntry[1]), newEntry));
+
+    }
+
+    void view()  {
+        queue<pair<string, vector<string>>> copy = recent;
+        for (int i=0; i<recent.size(); i++) {
+            vector<string> temp = copy.front().second;
+            copy.pop();
+            for (int j=0; j<3;j++) {
+                cout << temp[j] << " ";
+            }
+
+            cout << endl;
+        }
+
+    }
+
+    void displayAndUpdate(vector<string> city)  {
+        cout << city[1] << " Population: " << city[2] << endl;
+        addToCache(city);
+    }
+
+};
+
 int main() {
     CSVReader reader;
     string file = "world_cities.csv";
-    LFUCache* c = new LFUCache();
+    FIFOCache* c = new FIFOCache();
     string end = "~";
     string in = " ";
     string code, city;
