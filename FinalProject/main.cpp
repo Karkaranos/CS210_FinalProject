@@ -62,22 +62,34 @@ private:
 class Cache {
 public:
 
-    virtual bool findEntry(string countryCode, string cityCode);
-    virtual void remove();
-    virtual void addToCache(vector<string> newEntry);
-    virtual void view();
-    virtual void displayAndUpdate(vector<string> city);
+    virtual bool findEntry(string countryCode, string cityCode) {
+        cout << "Base Find Entry";
+    }
+    virtual void remove() {
+        cout << "Base Remove";
+    }
+    virtual void addToCache(vector<string> newEntry)
+    {
+        cout << "Base AddToCache";
+    }
+    virtual void view() {
+        cout << "Base View";
+    }
+    virtual void displayAndUpdate(vector<string> city) {
+        cout << "Base DisplayAndUpdate";
+    }
 
 };
 
-class LFUCache {
+class LFUCache : public Cache {
 public:
     LFUCache() {
+        cout << "Created LFUCache" << endl;
         recent.clear();
     }
     unordered_map<string, pair<int,vector<string>>> recent;
 
-    bool findEntry(string countryCode, string cityCode)  {
+    bool findEntry(string countryCode, string cityCode) override  {
         string key = countryCode + cityCode;
         if (recent.find(key) != recent.end()) {
             return true;
@@ -85,7 +97,7 @@ public:
         return false;
     }
 
-    void remove()  {
+    void remove() override {
         pair<int, string> leastFrequent;
         leastFrequent.first = INT_MAX;
         for (auto entry : recent) {
@@ -98,7 +110,7 @@ public:
         recent.erase(leastFrequent.second);
 
     }
-    void addToCache(vector<string> newEntry)  {
+    void addToCache(vector<string> newEntry) override {
         //Make space for it and adjust positions
         if (recent.size() > maxSize()) {
             remove();
@@ -118,7 +130,7 @@ public:
 
     }
 
-    void view()  {
+    void view() override {
         for (auto entry : recent) {
             cout << entry.second.first << " ";
             for (int i=0; i<3;i++) {
@@ -128,7 +140,7 @@ public:
         }
     }
 
-    void displayAndUpdate(vector<string> city)  {
+    void displayAndUpdate(vector<string> city) override {
         cout << city[1] << " Population: " << city[2] << endl;
         addToCache(city);
     }
@@ -136,14 +148,15 @@ public:
 };
 
 
-class FIFOCache {
+class FIFOCache : public Cache {
 public:
     FIFOCache() {
+        cout << "Created FIFO Cache" << endl;
         recent.empty();
     }
     queue<pair<string, vector<string>>>recent;
 
-    bool findEntry(string countryCode, string cityCode)  {
+    bool findEntry(string countryCode, string cityCode) override  {
         bool result = false;
         string key = countryCode + cityCode;
         //  Duplicating the queue so the order is not changed
@@ -159,10 +172,10 @@ public:
         return result;
     }
 
-    void remove()  {
+    void remove() override {
         recent.pop();
     }
-    void addToCache(vector<string> newEntry)  {
+    void addToCache(vector<string> newEntry) override {
         //Make space for it and adjust positions
         if (recent.size() > maxSize()) {
             remove();
@@ -195,7 +208,7 @@ public:
 
     }
 
-    void view()  {
+    void view() override {
         queue<pair<string, vector<string>>> copy = recent;
         for (int i=0; i<recent.size(); i++) {
             vector<string> temp = copy.front().second;
@@ -209,24 +222,25 @@ public:
 
     }
 
-    void displayAndUpdate(vector<string> city)  {
+    void displayAndUpdate(vector<string> city) override {
         cout << city[1] << " Population: " << city[2] << endl;
         addToCache(city);
     }
 
 };
 
-class RandomCache {
+class RandomCache : public Cache {
 public:
     vector<pair<string, vector<string>>> recent = vector<pair<string,vector<string>>>();
     int valCount;
     RandomCache() {
+        cout << "Created RandomCache" << endl;
         valCount = 0;
         srand(time(NULL));
         rand();
     }
 
-    bool findEntry(string countryCode, string cityCode)  {
+    bool findEntry(string countryCode, string cityCode) override {
         string key = countryCode + cityCode;
         for (int i=0; i<recent.size(); i++) {
             if (recent[i].first == key) {
@@ -236,11 +250,11 @@ public:
         return false;
     }
 
-    void remove()  {
+    void remove() override {
         // Not needed for this implementation
 
     }
-    void addToCache(vector<string> newEntry)  {
+    void addToCache(vector<string> newEntry) override {
         bool found = findEntry(newEntry[0], newEntry[1]);
         //If the entry is already stashed in the cache
 
@@ -262,7 +276,7 @@ public:
 
     }
 
-    void view()  {
+    void view() override {
         for (int i=0; i<recent.size(); i++)
             if (recent[i].first != "~") {
                 for (int j=0; j<3;j++) {
@@ -272,7 +286,7 @@ public:
             }
     }
 
-    void displayAndUpdate(vector<string> city)  {
+    void displayAndUpdate(vector<string> city) override {
         cout << city[1] << " Population: " << city[2] << endl;
         addToCache(city);
     }
@@ -282,10 +296,30 @@ public:
 int main() {
     CSVReader reader;
     string file = "world_cities.csv";
-    RandomCache* c = new RandomCache();
+    Cache* c = nullptr;
     string end = "~";
     string in = " ";
     string code, city;
+
+    while (c == nullptr)
+    {
+        char ci = ' ';
+        cout << "Select your cache type. \n\t1 for LFU\n\t2 for FIFO\n\t3 for Random";
+        cin >> ci;
+
+        if (ci == '1') {
+            c = new LFUCache();
+        }
+        else if (ci == '2') {
+            c = new FIFOCache();
+        }
+        else if (ci == '3') {
+            c = new RandomCache();
+        }
+    }
+
+    getline(cin, in, '\n');
+
     while (in != end) {
         cout << "To terminate program, type ~" << endl;
         cout << "Enter country code: ";
