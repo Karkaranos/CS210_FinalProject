@@ -10,11 +10,13 @@
 #include<bits/stdc++.h>
 using namespace std;
 
+/// Helper method to reduce magic numbers
 static int maxSize() {
     return 10;
 }
 
-
+/// Handles reading data from csv files
+/// Does not save results to memory
 class CSVReader {
 private:
      string fileName;
@@ -61,6 +63,10 @@ private:
     }
 };
 
+
+/// Base class for Caches
+/// Creates basic functions to be overwritten
+/// Has helper functions for formatting and display
 class Cache {
 public:
 
@@ -96,6 +102,10 @@ public:
 
 };
 
+/// Lowest Frequency Cache
+/// Inherits from the base Cache
+/// Saves a city's frequency
+/// Removes the city with the lowest frequency, as needed
 class LFUCache : public Cache {
 public:
     LFUCache() {
@@ -160,7 +170,10 @@ public:
 
 };
 
-
+/// First In First Out Cache
+/// Inherits from the base Cache
+/// Tracks the order cities were searched for in
+/// Removes the least recently searched for city as needed
 class FIFOCache : public Cache {
 public:
     FIFOCache() {
@@ -238,6 +251,9 @@ public:
 
 };
 
+/// Random Cache
+/// Inherits from the base Cache
+/// Randomly removes a city as needed
 class RandomCache : public Cache {
 public:
     vector<pair<string, vector<string>>> recent = vector<pair<string,vector<string>>>();
@@ -305,6 +321,8 @@ public:
 
 
 };
+
+
 
 int main() {
     CSVReader reader;
