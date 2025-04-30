@@ -32,7 +32,7 @@ private:
             vector<string> row;
             while (getline(ss, word, ','))
             {
-                if (word == countryCode) {
+                if (word == countryCode && match == 0) {
                     match++;
                 }
                 if (word == city) {
@@ -162,7 +162,6 @@ public:
         bool found = findEntry(newEntry[0], newEntry[1]);
         //If the entry is already stashed in the cache
         if (found) {
-            cout << "Size: " << recent.size() << endl;
             pair<string, vector<string>> saved;
             queue<pair<string, vector<string>>> helper;
             while (!recent.empty()) {
