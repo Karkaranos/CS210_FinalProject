@@ -6,6 +6,8 @@
 #include <queue>
 #include <random>
 #include <time.h>
+#include <iomanip>
+#include<bits/stdc++.h>
 using namespace std;
 
 static int maxSize() {
@@ -75,8 +77,21 @@ public:
     virtual void view() {
         cout << "Base View";
     }
-    virtual void displayAndUpdate(vector<string> city) {
-        cout << "Base DisplayAndUpdate";
+    void displayAndUpdate(vector<string> city) {
+        string substr = city[1].substr(1, city[1].length());
+        city[1] = toupper(city[1][0]);
+        city[1]+=substr;
+        cout << city[1] << " | Population: " << city[2] << endl;
+        addToCache(city);
+    }
+
+    vector<string> format(vector<string> newEntry) {
+        transform(newEntry[0].begin(), newEntry[0].end(), newEntry[0].begin(), ::toupper);
+        string substr = newEntry[1].substr(1, newEntry[1].length());
+        newEntry[1] = toupper(newEntry[1][0]);
+        newEntry[1]+=substr;
+        newEntry[2] = newEntry[2].substr(0, newEntry[2].length()-2);
+        return newEntry;
     }
 
 };
@@ -111,6 +126,7 @@ public:
 
     }
     void addToCache(vector<string> newEntry) override {
+        newEntry = format(newEntry);
         //Make space for it and adjust positions
         if (recent.size() > maxSize()) {
             remove();
@@ -131,19 +147,16 @@ public:
     }
 
     void view() override {
+        cout << endl << "Viewing LFU Cache..." << endl;
+        cout << left << setw(8) << "Freq. | " << setw(8) << "Country" << " | " << setw(15) << "City"
+            << " | Population" << endl;
         for (auto entry : recent) {
-            cout << entry.second.first << " ";
-            for (int i=0; i<3;i++) {
-                cout << entry.second.second[i] << " ";
-            }
+            cout << setw(6) << entry.second.first << "| " << setw(8) << entry.second.second[0] << " | "
+            << setw(15) << entry.second.second[1] << " | " << entry.second.second[2] << endl;
             cout << endl;
         }
     }
 
-    void displayAndUpdate(vector<string> city) override {
-        cout << city[1] << " Population: " << city[2] << endl;
-        addToCache(city);
-    }
 
 };
 
@@ -176,6 +189,7 @@ public:
         recent.pop();
     }
     void addToCache(vector<string> newEntry) override {
+        newEntry = format(newEntry);
         //Make space for it and adjust positions
         if (recent.size() > maxSize()) {
             remove();
@@ -209,23 +223,18 @@ public:
     }
 
     void view() override {
+        cout << endl << "Viewing FIFO Cache..." << endl;
+        cout << left << "Position | " << setw(8) << "Country" << " | " << setw(15) << "City"
+            << " | Population" << endl;
         queue<pair<string, vector<string>>> copy = recent;
         for (int i=0; i<recent.size(); i++) {
             vector<string> temp = copy.front().second;
+            cout << setw(9) << i+1 << "| " << setw(8) << temp[0] << " | "
+            << setw(15) << temp[1] << " | " << temp[2] << endl;
             copy.pop();
-            for (int j=0; j<3;j++) {
-                cout << temp[j] << " ";
-            }
-
-            cout << endl;
         }
-
     }
 
-    void displayAndUpdate(vector<string> city) override {
-        cout << city[1] << " Population: " << city[2] << endl;
-        addToCache(city);
-    }
 
 };
 
@@ -255,6 +264,7 @@ public:
 
     }
     void addToCache(vector<string> newEntry) override {
+        newEntry = format(newEntry);
         bool found = findEntry(newEntry[0], newEntry[1]);
         //If the entry is already stashed in the cache
 
@@ -277,19 +287,22 @@ public:
     }
 
     void view() override {
-        for (int i=0; i<recent.size(); i++)
+        cout << "Viewing Random Cache..." << endl;
+        cout << left << "Index | " << setw(8) << "Country" << " | " << setw(15) << "City"
+            << " | Population" << endl;
+        for (int i=0; i<recent.size(); i++) {
             if (recent[i].first != "~") {
-                for (int j=0; j<3;j++) {
-                    cout << recent[i].second[j] << " ";
-                }
-                cout << endl;
+                cout << setw(6) << i+1 << "| " << setw(8) << recent[i].second[0] << " | "
+                    << setw(15) << recent[i].second[1] << " | " << recent[i].second[2] << endl;
             }
+            else {
+                cout << setw(6) << i+1 << "| " << setw(8) << "NULL" << " | "
+            << setw(15) << "NULL" << " | " << "NULL" << endl;
+            }
+        }
+        cout << endl;
     }
 
-    void displayAndUpdate(vector<string> city) override {
-        cout << city[1] << " Population: " << city[2] << endl;
-        addToCache(city);
-    }
 
 };
 
@@ -304,7 +317,7 @@ int main() {
     while (c == nullptr)
     {
         char ci = ' ';
-        cout << "Select your cache type. \n\t1 for LFU\n\t2 for FIFO\n\t3 for Random";
+        cout << "Select your cache type. \n\t1 for LFU\n\t2 for FIFO\n\t3 for Random\n";
         cin >> ci;
 
         if (ci == '1') {
@@ -316,9 +329,10 @@ int main() {
         else if (ci == '3') {
             c = new RandomCache();
         }
+
+        getline(cin, in, '\n');
     }
 
-    getline(cin, in, '\n');
 
     while (in != end) {
         cout << "To terminate program, type ~" << endl;
@@ -328,6 +342,8 @@ int main() {
             break;
         }
         code = in;
+        transform(code.begin(), code.end(), code.begin(), ::tolower);
+
         cout << "Enter city name: ";
         getline(cin, in, '\n');
         if (in==end) {
@@ -335,6 +351,7 @@ int main() {
         }
         city = in;
 
+        transform(city.begin(), city.end(), city.begin(), ::tolower);
         vector<string> result = reader.readEntry(file, code, city);
         if (result.size()>0) {
             c->displayAndUpdate(result);
