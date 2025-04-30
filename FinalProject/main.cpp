@@ -4,7 +4,15 @@
 #include <sstream>
 #include <unordered_map>
 #include <queue>
+#include <random>
+#include <time.h>
 using namespace std;
+
+static int maxSize() {
+    return 10;
+}
+
+
 class CSVReader {
 private:
      string fileName;
@@ -92,7 +100,7 @@ public:
     }
     void addToCache(vector<string> newEntry)  {
         //Make space for it and adjust positions
-        if (recent.size() > 10) {
+        if (recent.size() > maxSize()) {
             remove();
         }
         bool found = findEntry(newEntry[0], newEntry[1]);
@@ -156,7 +164,7 @@ public:
     }
     void addToCache(vector<string> newEntry)  {
         //Make space for it and adjust positions
-        if (recent.size() > 10) {
+        if (recent.size() > maxSize()) {
             remove();
         }
         bool found = findEntry(newEntry[0], newEntry[1]);
@@ -208,10 +216,73 @@ public:
 
 };
 
+class RandomCache {
+public:
+    vector<pair<string, vector<string>>> recent = vector<pair<string,vector<string>>>();
+    int valCount;
+    RandomCache() {
+        valCount = 0;
+        srand(time(NULL));
+        rand();
+    }
+
+    bool findEntry(string countryCode, string cityCode)  {
+        string key = countryCode + cityCode;
+        for (int i=0; i<recent.size(); i++) {
+            if (recent[i].first == key) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void remove()  {
+        // Not needed for this implementation
+
+    }
+    void addToCache(vector<string> newEntry)  {
+        bool found = findEntry(newEntry[0], newEntry[1]);
+        //If the entry is already stashed in the cache
+
+        if (found) {
+            return;
+        }
+        if (valCount >= maxSize()) {
+            int removeMe = (rand() % maxSize()) -1;
+            if (removeMe < 0) {
+                removeMe = 0;
+            }
+            cout << removeMe << endl;
+            recent.at(removeMe) = make_pair(newEntry[0] + newEntry[1], newEntry);
+            return;
+        }
+
+        recent.push_back(make_pair(newEntry[0] + newEntry[1], newEntry));
+        valCount++;
+
+    }
+
+    void view()  {
+        for (int i=0; i<recent.size(); i++)
+            if (recent[i].first != "~") {
+                for (int j=0; j<3;j++) {
+                    cout << recent[i].second[j] << " ";
+                }
+                cout << endl;
+            }
+    }
+
+    void displayAndUpdate(vector<string> city)  {
+        cout << city[1] << " Population: " << city[2] << endl;
+        addToCache(city);
+    }
+
+};
+
 int main() {
     CSVReader reader;
     string file = "world_cities.csv";
-    FIFOCache* c = new FIFOCache();
+    RandomCache* c = new RandomCache();
     string end = "~";
     string in = " ";
     string code, city;
